@@ -450,6 +450,10 @@ export default function App() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
 
+  // 인앱 브라우저 감지 관련 상태
+  const [inAppBrowser, setInAppBrowser] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState('');
+
   const [agentInput, setAgentInput] = useState('공홈');
   const [inputText, setInputText] = useState('');
   const [reservations, setReservations] = useState([]);
@@ -461,6 +465,15 @@ export default function App() {
   const [mapModalData, setMapModalData] = useState(null);
   const [showFullMap, setShowFullMap] = useState(false);
   const fileInputRef = useRef(null);
+
+  // 카카오톡 등 인앱 브라우저 체크
+  useEffect(() => {
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.indexOf('kakaotalk') > -1 || ua.indexOf('instagram') > -1 || ua.indexOf('naver') > -1 || ua.indexOf('line') > -1) {
+      setInAppBrowser(true);
+      setCurrentUrl(window.location.href);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -514,7 +527,13 @@ export default function App() {
     setAuthError('');
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      // 모바일 환경일 경우 팝업 대신 리다이렉트 방식 사용
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
     } catch (error) {
       setAuthError(`구글 로그인 실패: ${error.message}`);
     }
@@ -540,6 +559,8 @@ export default function App() {
       if (!isMobile) {
         setToastMsg('클립보드에 복사되었습니다.');
         setTimeout(() => setToastMsg(''), 500);
+      } else {
+        alert('주소가 복사되었습니다. 다른 브라우저에 붙여넣기 하세요.');
       }
     } catch (err) {
       if (!isMobile) {
@@ -785,6 +806,18 @@ export default function App() {
           <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
             {isRegistering ? '새 계정 만들기' : '로그인'}
           </h2>
+
+          {inAppBrowser && (
+            <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-6 text-sm">
+              <p className="font-bold mb-1">⚠️ 앱 내 브라우저 접속 감지</p>
+              <p className="mb-2">카카오톡 등에서는 구글 보안 정책으로 로그인이 차단됩니다. 아래 주소를 복사하여 <b>크롬(Chrome)이나 사파리(Safari) 앱</b>에서 열어주세요.</p>
+              <div className="flex gap-2">
+                <input type="text" readOnly value={currentUrl} className="flex-1 bg-white border border-yellow-200 px-2 py-1 rounded text-xs overflow-hidden text-ellipsis whitespace-nowrap" />
+                <button type="button" onClick={() => copyToClipboard(currentUrl)} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 px-3 py-1 rounded font-bold text-xs shrink-0 transition-colors">복사</button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <input
               type="email"
@@ -803,7 +836,7 @@ export default function App() {
               required
             />
           </div>
-          {authError && <p className="text-red-500 text-sm mt-3 font-semibold text-center">{authError}</p>}
+          {authError && <p className="text-red-500 text-sm mt-3 font-semibold text-center break-words">{authError}</p>}
           <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition-colors mt-6">
             {isRegistering ? '계정 생성' : '로그인'}
           </button>
@@ -847,7 +880,7 @@ export default function App() {
       <div className="max-w-3xl mx-auto space-y-6">
         
         <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <span className="font-semibold text-gray-700">{user.email} 님</span>
+          <span className="font-semibold text-gray-700">{user.email || '구글 로그인 유저'} 님</span>
           <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300 font-bold transition-colors">
             로그아웃
           </button>
