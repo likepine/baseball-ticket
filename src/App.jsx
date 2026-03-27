@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { getFirestore, collection, onSnapshot, setDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -12,12 +12,10 @@ const firebaseConfig = {
   appId: "1:1085175936934:web:b379f3d2c600ce7cce0167",
   measurementId: "G-CP85B6R1KQ"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = 'baseball-ticket-app';
-
 
 // 블록별 이미지 URL 매핑 객체 생성
 const blockImageUrls = {
