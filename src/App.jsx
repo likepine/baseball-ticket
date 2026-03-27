@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { getFirestore, collection, onSnapshot, setDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -482,6 +482,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    getRedirectResult(auth).catch((error) => {
+      setAuthError(`구글 로그인 실패: ${error.message}`);
+    });
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     // 유저 고유의 DB 경로로 설정
     const colRef = collection(db, 'artifacts', appId, 'users', user.uid, 'reservations');
@@ -525,7 +531,6 @@ export default function App() {
     setAuthError('');
     try {
       const provider = new GoogleAuthProvider();
-      // 모바일 환경일 경우 팝업 대신 리다이렉트 방식 사용
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (isMobile) {
         await signInWithRedirect(auth, provider);
