@@ -583,11 +583,11 @@ export default function App() {
 
     if (match) {
       performCopy('');
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 250));
       performCopy(match[1]);
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 250));
       performCopy(match[2]);
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 250));
       performCopy(match[3]);
     } else {
       const phone = extractPhone(memo);
