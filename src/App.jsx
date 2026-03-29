@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { getFirestore, collection, onSnapshot, setDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -563,7 +563,7 @@ export default function App() {
     document.body.removeChild(textArea);
   };
 
-  const handleMemoCopy = (e, memo) => {
+  const handleMemoCopy = async (e, memo) => {
     e.stopPropagation();
     
     const regex = /(?:.*?\s+)?([가-힣]{2,5})\s+(01[016789]-\d{3,4}-\d{4})\s+(\d{4})/;
@@ -582,10 +582,13 @@ export default function App() {
     };
 
     if (match) {
-      performCopy('');       // 0. clipboard clear
-      performCopy(match[1]); // 1. 한글이름 카피
-      performCopy(match[2]); // 2. 전화번호 카피
-      performCopy(match[3]); // 3. 4자리숫자 카피
+      performCopy('');
+      await new Promise(resolve => setTimeout(resolve, 150));
+      performCopy(match[1]);
+      await new Promise(resolve => setTimeout(resolve, 150));
+      performCopy(match[2]);
+      await new Promise(resolve => setTimeout(resolve, 150));
+      performCopy(match[3]);
     } else {
       const phone = extractPhone(memo);
       performCopy(phone ? phone : memo);
