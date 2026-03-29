@@ -563,6 +563,40 @@ export default function App() {
     document.body.removeChild(textArea);
   };
 
+  const handleMemoCopy = (e, memo) => {
+    e.stopPropagation();
+    
+    const regex = /(?:.*?\s+)?([가-힣]{2,5})\s+(01[016789]-\d{3,4}-\d{4})\s+(\d{4})/;
+    const match = memo.match(regex);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 640;
+
+    const performCopy = (text) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {}
+      document.body.removeChild(textArea);
+    };
+
+    if (match) {
+      performCopy('');       // 0. clipboard clear
+      performCopy(match[1]); // 1. 한글이름 카피
+      performCopy(match[2]); // 2. 전화번호 카피
+      performCopy(match[3]); // 3. 4자리숫자 카피
+    } else {
+      const phone = extractPhone(memo);
+      performCopy(phone ? phone : memo);
+    }
+
+    if (!isMobile) {
+      setToastMsg('클립보드에 복사되었습니다.');
+      setTimeout(() => setToastMsg(''), 1000);
+    }
+  };
+
   const toggleExpand = (id) => {
     setExpandedIds(prev => {
       const isExpanding = !prev[id];
@@ -1052,13 +1086,8 @@ export default function App() {
                             return (
                               <div className="flex">
                                 <span 
-                                  onClick={(e) => {
-                                    if (phone) {
-                                      e.stopPropagation();
-                                      copyToClipboard(phone);
-                                    }
-                                  }}
-                                  className={`text-xs px-1.5 py-0.5 rounded font-bold border break-all sm:max-w-md ${phone ? 'bg-yellow-100 text-yellow-800 border-yellow-300 cursor-pointer hover:bg-yellow-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200'}`}
+                                  onClick={(e) => handleMemoCopy(e, displaySeat.memo)}
+                                  className={`text-xs px-1.5 py-0.5 rounded font-bold border break-all sm:max-w-md cursor-pointer ${phone ? 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100'}`}
                                 >
                                   {displaySeat.memo}
                                 </span>
@@ -1107,12 +1136,9 @@ export default function App() {
                                 onClick={(e) => e.stopPropagation()}
                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer"
                               />
-                              {phone && (
+                              {seat.memo.trim() !== '' && (
                                 <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    copyToClipboard(phone);
-                                  }}
+                                  onClick={(e) => handleMemoCopy(e, seat.memo)}
                                   className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded font-bold hover:bg-gray-300 shrink-0"
                                 >
                                   복사
